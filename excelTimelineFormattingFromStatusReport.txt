@@ -1,0 +1,237 @@
+'Made by Jonathan Fillion
+'fillion.jonathan@gmail.com
+'jonathan.fillion3@canada.ca
+
+Sub Bouton1_Cliquer()
+    inac = delete_and_format()
+    Dim projectArr As VBA.Collection
+    Dim interface As VBA.Collection
+    Dim TimeLinesToDisplay As VBA.Collection
+    Set interface = getArgs()
+    Set TimeLinesToDisplay = New Collection
+    indexRecherche_SMGLD = flagArgument("SM Go Live Date", interface)
+    indexRecherche_WPN = flagArgument("Work Package Name", interface)
+
+    numProject = getNumberOfProject()
+    Dim i As Integer, j As Integer
+
+    'For each project, loop for all args and save in double array (Pulling the data from owssvr page)
+    Set projectArr = pullDataOWSSVR(CInt(numProject), CInt(interface.Count - 1))
+    'Building timelines part
+    Set TimeLinesToDisplay = getTimelines(projectArr, CInt(indexRecherche_SMGLD))
+
+    inac = display(TimeLinesToDisplay, projectArr, CInt(indexRecherche_WPN))
+    
+End Sub
+
+Private Function display(TimeLinesToDisplay As VBA.Collection, projectArr As VBA.Collection, indexRecherche_WPN As Integer)
+    Debug.Print TimeLinesToDisplay.Count
+    ConstantSpace = 3
+    CurrentRow = 5
+    first = True
+    For i = 1 To TimeLinesToDisplay.Count
+        Index = projectArr(TimeLinesToDisplay(i)(2))(indexRecherche_WPN)
+        inac = setTitles(CInt(CurrentRow), CStr(Index))
+        If first Then
+            inac = generateTimelineDates(CInt(CurrentRow), CInt(TimeLinesToDisplay(i)(1)), CBool(first), 0, 0)
+            first = False
+        Else
+            inac = generateTimelineDates(CInt(CurrentRow), CInt(TimeLinesToDisplay(i)(1)), CBool(first), CInt(TimeLinesToDisplay(i - 1)(1)), CInt(CurrentRow - ConstantSpace))
+        End If
+    CurrentRow = CurrentRow + ConstantSpace
+    Next i
+
+End Function
+
+Private Function getTimelines(projectArr As VBA.Collection, indexRecherche_SMGLD As Integer) As VBA.Collection
+    For i = 1 To projectArr.Count
+        Dim TimeLinesToDisplay As New Collection
+        Set timeline = New Collection
+        GoLiveDate = stripHours(CStr(projectArr(i)(indexRecherche_SMGLD)))
+        daysToGo = DateDiff("d", Now, GoLiveDate)
+        timeline.Add daysToGo
+        timeline.Add i
+        If daysToGo > -1 Then
+            TimeLinesToDisplay.Add timeline
+        End If
+    Next i
+    Set getTimelines = TimeLinesToDisplay
+End Function
+
+Private Function pullDataOWSSVR(Lenproject As Integer, Leninterface As Integer) As VBA.Collection
+    Set projectArr = New Collection
+    For i = 2 To Lenproject
+        Set project = New Collection
+            For j = 1 To Leninterface - 1
+            project.Add CStr(Worksheets("owssvr").Cells(i, j).Value)
+            Next j
+        projectArr.Add project
+    Next i
+    Set pullDataOWSSVR = projectArr
+End Function
+
+
+'Go threw the project until empty to see how many there is
+Private Function getNumberOfProject()
+    Dim origin As Range
+    Data = 0
+    Set origin = Range("owssvr!A1")
+    i = 1
+    While (Not IsEmpty(Worksheets("owssvr").Cells(origin.Row + i, origin.Column)))
+        i = i + 1
+        Data = i
+    Wend
+    getNumberOfProject = Data
+End Function
+'Go threw all the args to know how many there is
+Private Function getArgs() As VBA.Collection
+    Set getArgs = New Collection
+    Dim i
+    i = 1
+    Do
+        Strg = Worksheets("owssvr").Cells(1, i).Value
+        getArgs.Add Item:=(CStr(Strg))
+        i = i + 1
+    Loop While Not IsEmpty(Strg)
+End Function
+'Search for the index of a certain arg by name, in this current case: Go live date
+Private Function flagArgument(arg_that_you_need As String, ByVal interface As VBA.Collection) As Integer
+    Dim i
+    i = 1
+    Do
+        Strg = interface(i)
+        If Strg = arg_that_you_need Then
+        flagArgument = i
+        Exit Do
+        End If
+        i = i + 1
+    Loop While i < interface.Count
+End Function
+'Remove hours from date
+Private Function stripHours(stra As String) As String
+    stripHours = Left(stra, 10)
+End Function
+
+Private Function delete_and_format()
+    Worksheets("Timelines").Activate
+    Worksheets("Timelines").Cells.Select
+    Selection.ClearContents
+    Selection.ClearFormats
+    With Worksheets("Timelines")
+        .Columns.UseStandardWidth = True
+        .Rows.UseStandardHeight = True
+        .Rows(1).RowHeight = 15
+        .Columns(1).ColumnWidth = 8.5
+    End With
+    Range("A1:A100").ColumnWidth = 56
+    Range("A1").Select
+End Function
+'Styling of project titles
+Private Function setTitles(lineNum As Integer, projectTitle As String)
+    With Worksheets("Timelines")
+        .Range(Cells(lineNum, 1), Cells(lineNum + 1, 1)).HorizontalAlignment = xlCenter
+        .Range(Cells(lineNum, 1), Cells(lineNum + 1, 1)).VerticalAlignment = xlCenter
+        .Range(Cells(lineNum, 1), Cells(lineNum + 1, 1)).WrapText = True
+        .Range(Cells(lineNum, 1), Cells(lineNum + 1, 1)).MergeCells = True
+        With .Range(Cells(lineNum, 1), Cells(lineNum + 1, 1))
+            .Interior.Color = RGB(232, 209, 245)
+            .Value = projectTitle
+            With .Borders(xlEdgeBottom)
+                .LineStyle = xlContinuous
+                .Weight = xlThick
+            End With
+            With .Borders(xlEdgeLeft)
+                .LineStyle = xlContinuous
+                .Weight = xlThick
+            End With
+            With .Borders(xlEdgeRight)
+                .LineStyle = xlContinuous
+                .Weight = xlThick
+            End With
+            With .Borders(xlEdgeTop)
+                .LineStyle = xlContinuous
+                .Weight = xlThick
+            End With
+        End With
+    End With
+End Function
+
+Private Function generateTimelineDates(lineNum As Integer, numOfDays As Integer, first As Boolean, oldNumOfDays As Integer, oldColumn As Integer)
+'Styling of timelines
+
+Worksheets("Timelines").Cells(lineNum + 1, 1).RowHeight = 35
+    With Range(Cells(lineNum, 2), Cells(lineNum, numOfDays))
+        .Interior.Color = RGB(227, 255, 137)
+        .NumberFormat = "yyyy-mm-dd;@"
+    End With
+    With Range(Cells(lineNum, 2), Cells(lineNum + 1, numOfDays))
+        With .Borders(xlEdgeBottom)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+        With .Borders(xlEdgeLeft)
+            .LineStyle = xlContinuous
+            .Weight = xlThick
+        End With
+        With .Borders(xlEdgeRight)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+        With .Borders(xlEdgeTop)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+        With .Borders(xlInsideHorizontal)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+        With .Borders(xlInsideVertical)
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+    End With
+    '====Avoid looping and generate work period intervals with maths instead====
+    'If it is the first, generate dates
+    If first Then
+        For i = 2 To numOfDays
+            stra = DateAdd("d", i, Now)
+            weekdaybool = isWeekend(CDate(stra))
+            With Worksheets("Timelines")
+                With .Cells(lineNum, i)
+                    .Value = stra
+                    If weekdaybool Then
+                        .Interior.Color = RGB(154, 123, 100)
+                    End If
+            End With
+        End With
+        Next i
+    'If not the first, copy old ones and generate all the other dates
+    Else
+        Worksheets("Timelines").Range(Cells(oldColumn, 2), Cells(oldColumn, oldNumOfDays)).Copy _
+        Destination:=Worksheets("Timelines").Range(Cells(lineNum, 2), Cells(lineNum, oldNumOfDays))
+        For i = oldNumOfDays To numOfDays
+            stra = DateAdd("d", i, Now)
+            weekdaybool = isWeekend(CDate(stra))
+            With Worksheets("Timelines")
+                With .Cells(lineNum, i)
+                    .Value = stra
+                    If weekdaybool Then
+                        .Interior.Color = RGB(154, 123, 100)
+                    End If
+                End With
+            End With
+        Next i
+    End If
+End Function
+
+Public Function isWeekend(InputDate As Date) As Boolean
+    Select Case Weekday(InputDate)
+        Case vbSaturday, vbSunday
+            isWeekend = True
+        Case Else
+            isWeekend = False
+    End Select
+End Function
+
+  
+

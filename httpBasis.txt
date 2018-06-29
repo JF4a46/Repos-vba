@@ -1,0 +1,74 @@
+Sub request()
+
+Dim xmlhttp As New MSXML2.XMLHTTP60, myurl As String
+'myurl = "api"
+myurl = ""
+
+xmlhttp.Open "GET", myurl, False
+xmlhttp.Send
+Debug.Print xmlhttp.responseText
+
+End Sub
+
+Sub makeFormulas()
+
+Data = "RECHERCHEV(Feuil1!T5;Tableau_owssvr_1;20;FAUX)"
+
+
+StrBasic = "=SI(" & Data & "=""Green"";""G"";SI(" & Data & "=""Yellow"";""Y"";SI(" & Data & "=""Red"";""R"";SI(" & Data & "=""Not Required"";""NR"";""""))))"
+StrComplete = "=SI(" & Data & "=""Green"";""G"";SI(" & Data & "=""Yellow"";""Y"";SI(" & Data & "=""Red"";""R"";SI(" & Data & "=""On Hold"";""H"";SI(" & Data & "=""Completed"";""B"";SI(" & Data & " = ""Pending approval to on-board"";""PO"";SI(" & Data & " = ""Pending approval to go live"";""PL"";SI(" & Data & "=""Pending approval to close"";""PC"";SI(" & Data & "=""Pending lens assessment/service design"";""PLA"";SI(" & Data & "=""Closed"";""C"";SI(" & Data & "=""Unassigned"";""U"";)))))))))))"
+
+Debug.Print StrBasic
+
+End Sub
+
+Sub conditionFormatSheet()
+    
+    Dim rng As Range
+    Set rng = Application.InputBox("Select a range", "Obtain Range Object", Type:=8)
+    'Debug.Print rng.Parent.Name
+    
+    Worksheets(CStr(rng.Parent.Name)).Activate
+    rng.Select
+    
+        
+    Dim colors As Variant
+    Dim colors_length As Integer
+    Dim conditions As Variant
+    Dim conditions_length As Integer
+    
+    colors = Array(RGB(204, 255, 204), RGB(255, 255, 204), RGB(230, 185, 184), RGB(179, 216, 239), RGB(180, 180, 180), RGB(177, 160, 199), RGB(177, 160, 199), RGB(177, 160, 199), RGB(22, 27, 238), RGB(64, 64, 64), RGB(226, 107, 10))
+    conditions = Array("G", "Y", "R", "B", "H", "PO", "PL", "PC", "SD", "C", "U")
+    conditions_length = UBound(conditions, 1) - LBound(conditions, 1) + 1
+    colors_length = UBound(colors, 1) - LBound(colors, 1) + 1
+    
+    If conditions_length <> colors_length Then _
+    MsgBox "Sizes are wong"
+    
+    Dim i As Long
+    i = 0
+    For Each cond In conditions
+        
+        Selection.FormatConditions.Add Type:=xlTextString, String:=cond, _
+        TextOperator:=xlBeginsWith
+      
+        
+        Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+        
+        With Selection.FormatConditions(1).Interior
+            .PatternColorIndex = xlAutomatic
+            .Color = colors(i)
+            .TintAndShade = 0
+        End With
+    
+    Selection.FormatConditions(1).StopIfTrue = False
+    i = i + 1
+    Next
+End Sub
+
+
+
+
+
+
+

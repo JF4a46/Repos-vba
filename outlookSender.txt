@@ -1,0 +1,61 @@
+
+Sub runApp()
+
+'Sheets("saved").Visible = xlVeryHidden
+Sheets("saved").Visible = True
+
+Dim rows As Integer
+rowsProject = Module1.getNumberOfProject(CStr("owssvr"))
+rowsSaved = Module1.getNumberOfProject(CStr("saved")) + 1
+Dim projectArr As Collection
+Set projectArr = pullData(CInt(rowsProject), CInt(5), CStr("owssvr"))
+Dim savedArr As Collection
+Set savedArr = pullData(CInt(rowsSaved), CInt(5), CStr("saved"))
+
+Dim changes As Collection
+Set changes = compareArrays(projectArr, savedArr)
+
+
+
+End Sub
+
+Public Function compareArrays(ByRef projectArr As Collection, ByVal savedArr As Collection) As Collection
+Dim returnArray As Collection
+
+For i = 1 To projectArr.Count
+    ID = projectArr(i)(1)
+    Debug.Print projectArr(i)(2)
+        For j = 1 To savedArr.Count
+            If ID = savedArr(j)(1) Then
+            'Debug.Print j & savedArr(j)(2)
+            End If
+            
+        Next j
+Next i
+
+'compareArrays = returnArray
+End Function
+
+Public Function getNumberOfProject(name As String) As Integer
+    Dim origin As Range
+    Data = 0
+    Set origin = Worksheets(name).Range("A1")
+    i = 1
+    While (Not IsEmpty(Worksheets(name).Cells(origin.Row + i, origin.Column)))
+        i = i + 1
+        Data = i
+    Wend
+    getNumberOfProject = Data
+End Function
+
+Private Function pullData(Lenproject As Integer, Leninterface As Integer, name As String) As VBA.Collection
+    Set projectArr = New Collection
+    For i = 2 To Lenproject
+        Set project = New Collection
+            For j = 1 To Leninterface - 1
+            project.Add CStr(Worksheets(name).Cells(i, j).Value)
+            Next j
+        projectArr.Add project
+    Next i
+    Set pullData = projectArr
+End Function

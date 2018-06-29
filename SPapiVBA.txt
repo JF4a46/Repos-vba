@@ -1,0 +1,53 @@
+Sub Add_Item(ListName As String, SharepointUrl As String, ValueVar As String, FieldNameVar As String)
+
+Dim objXMLHTTP As MSXML2.XMLHTTP60
+
+Dim strListNameOrGuid As String
+Dim strBatchXml As String
+Dim strSoapBody As String
+
+Set objXMLHTTP = New MSXML2.XMLHTTP60
+
+strListNameOrGuid = ListName
+
+
+'Add New Item'
+strBatchXml = "<Batch OnError='Continue'><Method ID='2' Cmd='New'><Field Name='ID'/><Field Name='" + FieldNameVar + "'>" + ValueVar + "</Field></Method></Batch>"
+
+
+objXMLHTTP.Open "POST", SharepointUrl + "_vti_bin/Lists.asmx", False
+objXMLHTTP.setRequestHeader "Content-Type", "text/xml; charset=""UTF-8"""
+objXMLHTTP.setRequestHeader "SOAPAction", "http://schemas.microsoft.com/sharepoint/soap/UpdateListItems"
+
+ strSoapBody = "<soap:Envelope xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/'><soap:Body><UpdateListItems xmlns='http://schemas.microsoft.com/sharepoint/soap/'><listName>" + strListNameOrGuid + "</listName><updates>" + strBatchXml + "</updates></UpdateListItems></soap:Body></soap:Envelope>"
+
+objXMLHTTP.send strSoapBody
+
+If objXMLHTTP.Status = 200 Then // 'returns objXMLHTTP.Status = 400 here
+//' something code
+End If
+
+Set objXMLHTTP = Nothing
+
+End Sub
+
+
+
+Sub RESTCall()
+    Const sUrl As String = "http://sp:12001/_api/Web/Lists/getByTitle('Parent')/items(1)"
+    Dim oRequest As WinHttp.WinHttpRequest
+    Dim sResult As String
+    
+    Set oRequest = New WinHttp.WinHttpRequest
+With oRequest
+    .Open "GET", sUrl, True
+    .setRequestHeader "Content-Type", "application/json"
+    .SetCredentials "domain\administrator", "pw", HTTPREQUEST_SETCREDENTIALS_FOR_SERVER
+    .send
+    .waitForResponse
+    sResult = .responseText
+    Debug.Print sResult
+    sResult = oRequest.Status
+    Debug.Print sResult
+End With
+End Sub

@@ -1,0 +1,199 @@
+ASSESSMENT FORM
+
+Public spaceCarriagesAdded As Integer
+
+
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Application.DisplayAlerts = False
+    Dim largeTextField() As Variant
+    largeTextField = Array("description")
+    Dim whiteList() As Variant
+    'Add to whitelist for detection
+    whiteList = Array("name1", "name2", "email1", "email2", "other1", "other2", "prj", "unique_id", "comment1", "rec", "date_decision", "comment2", "Project_Name1", "Project_Name2", "depedencies", "director", "links", "cleaned_summary", "Expected_go_live_Date")
+    Dim doubleConflict() As Variant
+    'If to in the same line, add to double conflict
+    doubleConflict = Array("name1", "name2", "email1", "email2", "other1", "other2", "prj", "unique_id", "Project_Name1", "Project_Name2")
+    spaceCarriagesAdded = 13
+    
+    
+    
+    If Not IsDropList() Then
+    'If Not Intersect(Target, Range("A25")) Is Nothing Then
+    cellName = getCellName(Target)
+        If contains(CStr(cellName), largeTextField) Then
+            inac = adjustHeight(Target, CInt(5), CInt(90.75), 10)
+        Else
+            If contains(CStr(cellName), whiteList) Then
+                inactif = adjustHeight(Target, CInt(1), CInt(16.5), 10)
+                    If (contains(CStr(cellName), doubleConflict)) Then
+                    inac = adjustRowToBiggest(Target, 11)
+                    End If
+            End If
+        End If
+    End If
+End Sub
+
+Private Function adjustRowToBiggest(Target As Range, fontsize As Integer)
+  max = 0
+  Dim returnTarget As Range
+  For i = 2 To 4
+  currHeight = getHeight(Range(Cells(Target.Row, i), Cells(Target.Row, i)), CInt(1), CInt(16.5), fontsize)
+  If currHeight > max Then
+    max = currHeight
+    Set returnTarget = Range(Cells(Target.Row, i), Cells(Target.Row, i))
+  End If
+  i = i + 1
+  Next i
+  inac = adjustHeight(returnTarget, CInt(1), CInt(16.5), fontsize)
+End Function
+
+Private Function getHeight(Target As Range, normal_height_in_lines As Integer, normal_height As Integer, fontsize As Integer)
+        Target.Font.Size = fontsize
+        Const max_height = 400
+        add_space = getSpace(fontsize)
+        On Error Resume Next
+        cellWidth = Target.MergeArea.Width
+        offsetCarriages = getCarriagesNumber(Target.Value2) * spaceCarriagesAdded
+        numberOfLines = (Len(Target.Value2) * 5.3) / (cellWidth)
+        If numberOfLines > normal_height_in_lines Then
+            If Not CInt(numberOfLines * add_space) + offsetCarriages > max_height Then
+            getHeight = CInt(numberOfLines * add_space + offsetCarriages)
+            Else
+                getHeight = max_height
+            End If
+        Else
+            If offsetCarriages < normal_height Then
+            getHeight = normal_height
+            Else
+            If offsetCarriages < max_height Then
+            getHeight = offsetCarriages
+            Else
+                getHeight = max_height
+            End If
+            End If
+        End If
+        On Error GoTo 0
+End Function
+'Control of the space added depending on font
+Private Function getSpace(fontsize As Integer)
+        If fontsize > 10 Then
+            getSpace = 14.5
+        Else
+            getSpace = 11
+        End If
+End Function
+
+Private Function adjustHeight(Target As Range, normal_height_in_lines As Integer, normal_height As Integer, fontsize As Integer)
+        Target.Font.Size = fontsize
+        Const max_height = 400
+        On Error Resume Next
+        add_space = getSpace(fontsize)
+        cellWidth = Target.MergeArea.Width
+        offsetCarriages = getCarriagesNumber(Target.Value2) * spaceCarriagesAdded
+        numberOfLines = (Len(Target.Value2) * 5.3) / (cellWidth)
+       'MsgBox cellWidth
+        If numberOfLines > normal_height_in_lines Then
+            If Not CInt(numberOfLines * add_space) + offsetCarriages > max_height Then
+            Target.RowHeight = CInt(numberOfLines * add_space + offsetCarriages)
+            Else
+                Target.RowHeight = max_height
+            End If
+        Else
+            If offsetCarriages < normal_height Then
+            Target.RowHeight = normal_height
+            Else
+            If offsetCarriages < max_height Then
+            Target.RowHeight = offsetCarriages
+            Else
+                Target.RowHeight = max_height
+            End If
+            End If
+        End If
+        On Error GoTo 0
+End Function
+
+Private Function getCellName(Target As Range) As String
+    On Error Resume Next
+        dataName = (Target.Name.Name)
+        If Err.Number <> 0 Then
+            getCellName = "nil"
+        Else
+            getCellName = dataName
+        End If
+    On Error GoTo 0
+End Function
+
+Private Function contains(str As String, arr As Variant) As Boolean
+   contains = (UBound(Filter(arr, str)) > -1)
+End Function
+
+Private Function IsDropList() As Boolean
+    On Error GoTo trap
+    data = ActiveCell.Validation.Formula1
+    IsDropList = True
+    On Error GoTo 0
+   Exit Function
+trap:
+    IsDropList = False
+    On Error GoTo 0
+End Function
+
+Private Function getCarriagesNumber(data As String) As Integer
+   On Error Resume Next
+    Dim str$()
+    str = Split(data, Chr(10))
+    data = UBound(str, 1) - LBound(str, 1) + 1
+    getCarriagesNumber = data
+    On Error GoTo 0
+End Function
+
+
+Private Sub CommandButton1_Click()
+    Application.ScreenUpdating = False
+            Range("mainpage!description").Copy
+            Range("mainpage!cleaned_summary").PasteSpecial Paste:=xlValues, Operation:=xlNone, SkipBlanks:=False, Transpose:=False
+    Application.ScreenUpdating = True
+    Worksheet_Change Range("mainpage!cleaned_summary")
+End Sub
+
+
+______________________________________________________________
+
+ASSESSMENT FORM WORKBOOK
+
+Private Sub Workbook_Open()
+
+
+Range("mainpage!pulled_name").Value2 = getDefinedName()
+Range("mainpage!pulled_summary").Value2 = Range("mainpage!cleaned_summary")
+Range("mainpage!pulled_rec").Value2 = Range("mainpage!rec").Value2
+Range("mainpage!pulled_golivedate").Value2 = Range("mainpage!Expected_go_live_Date").Value2
+
+End Sub
+
+Private Function getDefinedName()
+name1 = Range("mainpage!Project_name1").Value2
+name2 = Range("mainpage!Project_name2").Value2
+
+If StrComp(name1, name2) = 0 Then
+    If StrComp(name1, "") = 0 Then
+        getDefinedName = ""
+    Else
+        getDefinedName = name1
+    End If
+Else
+    If Not (StrComp(name1, "") And StrComp(name2, "")) Then
+        getDefinedName = name1 + " " + name2
+    Else
+    If StrComp(name1, "") = 0 Then
+        getDefinedName = name2
+    Else
+        getDefinedName = name1
+    End If
+    End If
+End If
+End Function
+
+
+
+
