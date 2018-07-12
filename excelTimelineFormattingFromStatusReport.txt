@@ -1,6 +1,3 @@
-'Made by Jonathan Fillion
-'fillion.jonathan@gmail.com
-'jonathan.fillion3@canada.ca
 
 Sub Bouton1_Cliquer()
     inac = delete_and_format()
