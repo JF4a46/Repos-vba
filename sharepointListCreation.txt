@@ -1,0 +1,72 @@
+Sub sharepointListCreation()
+
+Dim IE As InternetExplorerMedium
+Set IE = New InternetExplorerMedium
+Dim urltolistsettings As String
+urltolistsettings = "A16E%2D4084%2D9A81%2D373F34C1DC2C%7D"
+IE.Visible = True
+
+Call Module1.loadPage(urltolistsettings, IE)
+
+
+Dim retour As Collection
+Dim data As Variant
+Length = 16
+'Names I have defined to help the script run
+'To add something first, define name before "a"
+data = Array("a", "b", "d", "e", "f", "g", "h", "i", "j", "k", "m", "n", "o", "p", "q", "t")
+
+For j = 0 To Length
+Set retour = Module3.dataRead(CStr(data(j)))
+For i = 1 To retour.Count
+Debug.Print retour(i)(2)
+IE.Document.getelementbyid("onetidListEdit4").Click
+Application.Wait Now + #12:00:03 AM#
+IE.Document.getelementbyid("idColName").Value = retour(i)(1)
+IE.Document.getelementbyid("onetidTypeChoice").Click
+Application.Wait Now + #12:00:02 AM#
+IE.Document.getelementbyid("idDesc").innerText = retour(i)(2)
+Application.Wait Now + #12:00:03 AM#
+IE.Document.getelementbyid("idChoices").innerText = "TBD" & vbCrLf & "Yes" & vbCrLf & "No"
+IE.Document.getelementbyid("onetidIODefChoiceValue").innerText = "TBD"
+IE.Document.getelementbyid("onetidSaveItem").Click
+Application.Wait Now + #12:00:02 AM#
+Call Module1.loadPage(urltolistsettings, IE)
+Next i
+
+Next j
+
+End Sub
+
+
+Function dataRead(index As String) As Collection
+Dim retour As New Collection
+Dim subretour As Collection
+Dim rng As Range
+'    Set rng = Application.InputBox("Select a range", "Obtain Range Object", Type:=8)
+'    'Debug.Print rng.Parent.Name
+'
+'    Worksheets(CStr(rng.Parent.Name)).Activate
+    
+    Set rng = Worksheets("Feuil3").Range(index)
+    Worksheets(CStr(rng.Parent.Name)).Activate
+    
+    title = rng(1)(1).Value & ": "
+    Dim subtitle As String
+    Dim descrip As String
+    descript = ""
+    For i = 2 To rng.Rows.Count
+        Set subretour = New Collection
+        subretour.Add (title & rng(1)(i))
+        descrip = rng(2)(i)
+        If rng(3)(i) <> "" Then
+        descrip = descrip & vbCrLf & rng(3)(i)
+        End If
+        
+        subretour.Add descrip & vbCrLf & vbCrLf & "Done by: " & rng(4)(i) & vbCrLf & "In consultation with: " & rng(5)(i) & vbCrLf & "For consumption by: " & rng(6)(i)
+        retour.Add subretour
+    Next i
+    Debug.Print retour(1)(1)
+    Set dataRead = retour
+    
+End Function

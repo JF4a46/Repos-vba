@@ -1,0 +1,109 @@
+TABLES COMMANDS
+
+
+Select
+
+VBA Coding
+
+Entire Table ActiveSheet.ListObjects("Table1").Range.Select 
+Table Header Row ActiveSheet.ListObjects("Table1").HeaderRowRange.Select 
+Table Data ActiveSheet.ListObjects("Table1").DataBodyRange.Select 
+Third Column ActiveSheet.ListObjects("Table1").ListColumns(3).Range.Select 
+Third Column (Data Only) ActiveSheet.ListObjects("Table1").ListColumns(3).DataBodyRange.Select 
+Select Row 4 of Table Data ActiveSheet.ListObjects("Table1").ListRows(4).Range.Select 
+Select 3rd Heading ActiveSheet.ListObjects("Table1").HeaderRowRange(3).Select 
+Select Data point in Row 3, Column 2 ActiveSheet.ListObjects("Table1").DataBodyRange(3, 2).Select 
+Subtotals ActiveSheet.ListObjects("Table1").TotalsRowRange.Select 
+
+Insert A New Column 4 ActiveSheet.ListObjects("Table1").ListColumns.Add Position:=4 
+Insert Column at End of Table ActiveSheet.ListObjects("Table1").ListColumns.Add 
+Insert Row Above Row 5 ActiveSheet.ListObjects("Table1").ListRows.Add (5) 
+Add Row To Bottom of Table ActiveSheet.ListObjects("Table1").ListRows.Add AlwaysInsert:= True 
+Add Totals Row ActiveSheet.ListObjects("Table1").ShowTotals = True 
+
+
+Sub SingleColumnTable_To_Array()
+
+Dim myTable As ListObject
+Dim myArray As Variant
+Dim TempArray As Variant
+Dim x As Long
+
+'Set path for Table variable
+  Set myTable = ActiveSheet.ListObjects("Table1")
+
+'Create Array List from Table
+  TempArray = myTable.DataBodyRange
+  
+'Convert from vertical to horizontal array list
+  myArray = Application.Transpose(TempArray)
+
+'Loop through each item in the Table Array (displayed in Immediate Window [ctrl + g])
+  For x = LBound(myArray) To UBound(myArray)
+    Debug.Print myArray(x)
+  Next x
+  
+End Sub
+___________________________________
+Sub MultiColumnTable_To_Array()
+
+Dim myTable As ListObject
+Dim myArray As Variant
+Dim x As Long
+
+'Set path for Table variable
+  Set myTable = ActiveSheet.ListObjects("Table1")
+
+'Create Array List from Table
+  myArray = myTable.DataBodyRange
+
+'Loop through each item in Third Column of Table (displayed in Immediate Window [ctrl + g])
+  For x = LBound(myArray) To UBound(myArray)
+    Debug.Print myArray(x, 3)
+  Next x
+  
+End Sub
+_________________________________
+
+Sub LoopingThroughTable()
+
+Dim tbl As ListObject
+Dim x As Long
+
+Set tbl = ActiveSheet.ListObjects("Table1")
+
+'Loop Through Each Column in Table
+  For x = 1 To tbl.ListColumns.Count
+    tbl.ListColumns(x).Range.ColumnWidth = 8
+  Next x
+
+'Loop Through Every Row in Table
+  For x = 1 To tbl.Range.Rows.Count
+    tbl.Range.Rows(x).RowHeight = 20
+  Next x
+  
+'Loop Through Each DataBody Row in Table
+  For x = 1 To tbl.ListRows.Count
+    tbl.ListRows(x).Range.RowHeight = 15
+  Next x
+
+End Sub
+
+____________________________________
+Sub human()
+    Dim RangeArr(0 To 4) As Range
+    Set RangeArr(0) = Range("AH10:AP10")
+    Set RangeArr(1) = Range("AH17:AP17")
+    Set RangeArr(2) = Range("AH24:AP24")
+    Set RangeArr(3) = Range("AH34:AP34")
+    Set RangeArr(4) = Range("AH42:AP42")
+
+    For I = 0 To 4
+    With RangeArr(I).Interior
+        .Pattern = xlSolid
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.249977111117893
+    End With
+    Next
+
+End Sub
