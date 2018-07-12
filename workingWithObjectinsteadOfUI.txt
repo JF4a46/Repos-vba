@@ -1,0 +1,89 @@
+Sub main()
+    On Error GoTo errHandler
+    Application.ScreenUpdating = False
+    ActiveWorkbook.RefreshAll
+    tasks.update_escalation_template
+    tasks.update_yellow_template
+    tasks.update_red_template
+    Dim ws As Worksheet
+    Set ws = Worksheets("Overview")
+    ws.Range("console").Value = "Updated"
+    Application.ScreenUpdating = True
+errHandler:
+    Application.ScreenUpdating = True
+End Sub
+    
+
+
+Sub update_escalation_template()
+    Dim wsTemplate As Worksheet
+    Dim wsRed As Worksheet
+    Dim rng As Range
+    Dim deleteRng As Range
+    Dim lengths() As Variant
+    Set wsTemplate = Worksheets("templates")
+    Set wsEscalation = Worksheets("Escalation")
+    Set deleteRng = wsEscalation.Range("escalation_delete_zone")
+    deleteRng.Clear
+    deleteRng.ClearFormats
+    Set rng = wsTemplate.Range("Escalation_template")
+    Dim rng1 As Range
+    lengths = wsTemplate.Range("lengths").Value
+    lengthEscalation = lengths(1, 1)
+    jump = 0
+    For i = 1 To lengthEscalation
+        Set rng1 = wsEscalation.Cells(1 + jump, 1)
+        rng.Copy rng1
+        jump = jump + 33
+    Next i
+End Sub
+Sub update_yellow_template()
+   
+    Dim wsTemplate As Worksheet
+    Dim wsRed As Worksheet
+    Dim rng As Range
+    Dim deleteRng As Range
+    Dim lengths() As Variant
+    Set wsTemplate = Worksheets("templates")
+    Set wsYellow = Worksheets("Yellow")
+    Set deleteRng = wsYellow.Range("yellow_delete_zone")
+    deleteRng.Clear
+    deleteRng.ClearFormats
+    Set rng = wsTemplate.Range("Yellow_template")
+    Dim rng1 As Range
+    lengths = wsTemplate.Range("lengths").Value
+    lengthYellow = lengths(1, 2)
+    jump = 0
+    
+    For i = 1 To lengthYellow
+        Set rng1 = wsYellow.Cells(1 + jump, 1)
+        rng.Copy rng1
+        jump = jump + 33
+        Next i
+End Sub
+Sub update_red_template()
+    
+    Dim wsTemplate As Worksheet
+    Dim wsRed As Worksheet
+    Dim rng As Range
+    Dim lengths() As Variant
+    Dim deleteRng As Range
+    Set wsTemplate = Worksheets("templates")
+    Set wsRed = Worksheets("Red")
+    Set rng = wsTemplate.Range("Red_template")
+    Set deleteRng = wsRed.Range("red_delete_zone")
+    deleteRng.Clear
+    deleteRng.ClearFormats
+    Dim rng1 As Range
+    lengths = wsTemplate.Range("lengths").Value
+    lengthRed = lengths(1, 3)
+    jump = 0
+    For i = 1 To lengthRed
+        Set rng1 = wsRed.Cells(1 + jump, 1)
+        rng.Copy rng1
+        jump = jump + 33
+        Next i
+End Sub
+
+
+
