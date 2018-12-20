@@ -107,3 +107,100 @@ Sub human()
     Next
 
 End Sub
+
+
+
+
+Sub request()
+''Add items to list
+'Dim xmlhttp As New MSXML2.XMLHTTP60, myurl As String
+''myurl = "https://synergi.ssc-spc.gc.ca/IS/SMO-OGS/SMTPS/_vti_bin/client.svc/Web"
+'myurl = "https://synergi.ssc-spc.gc.ca/IS/SMO-OGS/SMTPS/_api/Web/Lists/getByTitle('logs')/items(1)"
+'
+'xmlhttp.Open "GET", myurl, False
+'xmlhttp.send
+'Debug.Print xmlhttp.responseText
+'
+
+
+Dim dataFields As Variant
+dataFields = Array("Title", "data")
+Dim dataRange As Range
+Set dataRange = Sheet1.ListObjects("Table1").DataBodyRange
+
+
+Dim row As Range
+Dim c As Range
+'len or array
+
+Dim arr(2) As String
+Dim count As Integer
+
+
+
+For Each row In dataRange.Rows
+    count = 0
+    For Each c In row.Cells
+        arr(count) = CStr(c.Value)
+        count = count + 1
+    Next
+    
+    inac = Add_Item("logs", "https://synergi.ssc-spc.gc.ca/IS/SMO-OGS/SMTPS/", arr, dataFields)
+Next
+
+
+
+
+
+'
+
+
+End Sub
+
+
+Function Add_Item(ListName As String, SharepointUrl As String, ValueVar As Variant, FieldNameVar As Variant)
+
+Dim objXMLHTTP As MSXML2.xmlhttp
+
+Dim strListNameOrGuid As String
+Dim strBatchXml As String
+Dim strSoapBody As String
+
+Set objXMLHTTP = New MSXML2.xmlhttp
+
+strListNameOrGuid = ListName
+strBatchXml = "<Batch OnError='Continue'><Method ID='3' Cmd='New'><Field Name='ID'>New</Field>"
+
+
+
+For i = 0 To 1
+    strBatchXml = strBatchXml + "<Field Name='" + FieldNameVar(i) + "'>" + ValueVar(i) + "</Field>"
+Next
+strBatchXml = strBatchXml + "</Method></Batch>"
+MsgBox strBatchXml
+'Add New Item'
+'strBatchXml = "<Batch OnError='Continue'><Method ID='3' Cmd='New'><Field Name='ID'>New</Field><Field Name='" + FieldNameVar + "'>" + ValueVar + "</Field></Method></Batch>"
+
+
+objXMLHTTP.Open "POST", SharepointUrl & "_vti_bin/Lists.asmx", False
+objXMLHTTP.setRequestHeader "Content-Type", "text/xml; charset=""UTF-8"""
+objXMLHTTP.setRequestHeader "SOAPAction", "http://schemas.microsoft.com/sharepoint/soap/UpdateListItems"
+
+strSoapBody = "<soap:Envelope xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' " _
+ & "xmlns:xsd='http://www.w3.org/2001/XMLSchema' " _
+ & "xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/'><soap:Body><UpdateListItems " _
+ & "xmlns='http://schemas.microsoft.com/sharepoint/soap/'><listName>" & strListNameOrGuid _
+ & "</listName><updates>" & strBatchXml & "</updates></UpdateListItems></soap:Body></soap:Envelope>"
+
+objXMLHTTP.send strSoapBody
+
+If objXMLHTTP.Status = 200 Then
+    MsgBox "reussit"
+End If
+
+Set objXMLHTTP = Nothing
+
+End Function
+
+
+
