@@ -16,13 +16,13 @@ Sub createMeetingInvitation()
     
     'Instance des Objets
     Set app = Outlook.Application    'Instance de l'application
-    Set meeting = app.CreateItem(olAppointmentItem)  'Instance de la nouvelle entrée du calendrier
+    Set meeting = app.CreateItem(olAppointmentItem)  'Instance de la nouvelle entrÃ©e du calendrier
     meeting.MeetingStatus = olMeeting
     Dim template As Outlook.MailItem
     Set template = app.CreateItemFromTemplate("")
     
 
-    'Affichage de l'entrée du calendrier
+    'Affichage de l'entrÃ©e du calendrier
     meeting.Display
     sName = InputBox(Prompt:="Press a button to let IE set the meeting", XPos:=15000, YPos:=8000)
    
